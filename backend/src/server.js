@@ -1,14 +1,31 @@
-import express from 'express';
-import { ENV } from './lib/env.js';
+import express from "express";
+import path from "path";
+
+import { ENV } from "./lib/env.js";
+
 
 const app = express();
 
-app.get('/', (req, res) => {
-  res.status(200).json({ Msg: 'Success from api' });
+const __dirname = path.resolve();
+
+// middleware
+app.use(express.json());
+// credentials:true meaning?? => server allows a browser to include cookies on request
+
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ msg: "api is up and running" });
 });
 
-const PORT = ENV.PORT;
+// make our app ready for deployment
+if (ENV.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  app.get("/{*any}", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+  });
+}
+
+app.listen(ENV.PORT, () => {
+  console.log(`Server is running on port ${ENV.PORT}`);
 });
